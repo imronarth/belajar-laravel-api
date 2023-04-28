@@ -23,11 +23,20 @@ class PostController extends Controller
     }
     public function store(Request $request)
     {
-        return $request->file;
+        // return $request->file;
         $validated = $request->validate([
             'title' => 'required|max:255',
             'news_content' => 'required'
         ]);
+
+        if ($request->file) {
+            $fileName = $this->random_string(30);
+            $extension = $request->file->extension();
+
+            Storage::putFileAs('image', $request->file, $fileName . '.' . $extension);
+            $request['image'] = $fileName . '.' . $extension;
+        }
+
         $request['author'] = Auth::user()->id;
         $post = Post::create($request->all());
         return new PostDetailResource($post->loadMissing('writer:id,username'));
@@ -43,7 +52,8 @@ class PostController extends Controller
             $fileName = $this->random_string(30);
             $extension = $request->file->extension();
 
-            Storage::putFileAs('image', $request->file, $fileName. '.'. $extension);
+            Storage::putFileAs('image', $request->file, $fileName . '.' . $extension);
+            $request['image'] = $fileName . '.' . $extension;
         }
 
         $post = Post::findOrFail($id);
